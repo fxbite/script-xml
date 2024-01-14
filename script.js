@@ -1,12 +1,53 @@
 const xml2js = require('xml2js');
+const fs = require('fs');
 
 async function getContractID() {
     // Return result
-    let resultContract = []
-    const attribute1Name = 'FeatureTypeID';
-    const attribute1Value = '345';
-    const attribute2Name = 'DetailTypeID';
-    const attribute2Value = '1432';
+    let resultContract = {}
+    const attributeAsset = 'FeatureTypeID';
+    const attributeAddress = 'DetailTypeID';
+    const assetsMapping = [
+      'XBT',
+      'ETH',
+      'XMR',
+      'LTC',
+      'ZEC',
+      'DASH',
+      'BTG',
+      'ETC',   
+      'BSV',
+      'BCH',
+      'XVG',
+      'USDT',
+      'XRP',
+      'ARB',
+      'BSC',
+      'USDC',
+      'TRX'
+    ]
+
+    const attributes = {
+      'FeatureTypeID': { 
+        XBT: '344',
+        ETH: '345',
+        XMR: '444',
+        LTC: '566',
+        ZEC: '686',
+        DASH: '687',
+        BTG: '688',
+        ETC: '689',   
+        BSV: '706',
+        BCH: '726',
+        XVG: '746',
+        USDT: '887',
+        XRP: '907',
+        ARB: '1007',
+        BSC: '1008',
+        USDC: '998',
+        TRX: '992'
+      },
+      'DetailTypeID': '1432'
+    }
   
     const findElementsWithAttributeValue = (obj, attributeName, attributeValue) => {
       const elements = [];
@@ -62,14 +103,23 @@ async function getContractID() {
           throw new Error('Error parsing the XML:', err)
         }
   
-        const desiredElements = findElementsWithAttributeValues(result, attribute1Name, attribute1Value, attribute2Name, attribute2Value); 
-        desiredElements.forEach(object => {
-          resultContract.push(object.FeatureVersion[0].VersionDetail[0]["_"])
+        assetsMapping.forEach(asset => {
+          const desiredElements = findElementsWithAttributeValues(result, attributeAsset, attributes[attributeAsset][asset], attributeAddress, attributes[attributeAddress]); 
+          resultContract[asset] = { address: [] }
+          desiredElements.forEach(object => {
+            resultContract[asset]['address'].push(object.FeatureVersion[0].VersionDetail[0]["_"])
+          })
+          const totalAddress = resultContract[asset]['address'].length
+          resultContract[asset]['total'] = totalAddress
         })
       })
-  
       console.log(`Done: ${new Date().toISOString()}`)
-      console.log(resultContract.length)
+
+      // For Testing (write into a json file)
+      const jsonContent = JSON.stringify(resultContract, null, 2);
+      fs.writeFileSync('resultContract.json', jsonContent);
+      console.log('resultContract has been written to resultContract.json');
+
       return resultContract 
     } catch (error) {
       console.log(`Error Handler: ${error}`)
